@@ -14,6 +14,7 @@ import { TopCenterWave } from "@/components/ui/top-center-wave";
 import { CoApplicantPromo } from "@/components/coapplicant-promo";
 import { getStagePrompt } from "@/lib/stage-prompts";
 import { speakWithEleven } from "@/services/tts/elevenlabs";
+import { ELEVEN_VOICE_ID, ELEVEN_MODEL_DEFAULT, USE_BROWSER_TTS } from "@/config/voice";
 import { startWebSpeechListening } from "@/services/stt/web-speech";
 
 interface Message {
@@ -37,6 +38,20 @@ export const VoiceAgentDashboard: React.FC = () => {
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [showCoApplicantPromo, setShowCoApplicantPromo] = React.useState(false);
   const sttStopRef = React.useRef<null | (() => void)>(null);
+
+  // Simple Web Speech API speaker for agent text
+  const speak = React.useCallback((text: string) => {
+    try {
+      if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "en-US";
+      utter.rate = 1;
+      utter.pitch = 1;
+      // restart any previous utterances for clarity
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utter);
+    } catch {}
+  }, []);
 
   const handleToggleListening = () => {
     if (isListening) {
@@ -84,8 +99,9 @@ export const VoiceAgentDashboard: React.FC = () => {
       setMessages((prev) => [...prev, agentMessage]);
       setIsProcessing(false);
       setIsSpeaking(true);
+      if (USE_BROWSER_TTS) speak(agentText);
       try {
-        await speakWithEleven(agentText);
+        await speakWithEleven(agentText, { voiceId: ELEVEN_VOICE_ID, model: ELEVEN_MODEL_DEFAULT });
       } catch {}
       setIsSpeaking(false);
       if (currentStage === 1) setCurrentStage(2);
@@ -133,10 +149,11 @@ export const VoiceAgentDashboard: React.FC = () => {
         content: intro,
         timestamp: new Date(),
       };
-      setTimeout(() => {
+      setTimeout(async () => {
         setMessages((prevMsgs) => [...prevMsgs, agentMessage]);
         setIsSpeaking(true);
-        setTimeout(() => setIsSpeaking(false), 2500);
+        try { await speakWithEleven(agentMessage.content, { voiceId: ELEVEN_VOICE_ID, model: ELEVEN_MODEL_DEFAULT }); } catch {}
+        setIsSpeaking(false);
       }, 350);
     }
     prevStageRef.current = currentStage;
