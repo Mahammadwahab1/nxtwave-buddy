@@ -10,11 +10,11 @@ import { toast } from "@/hooks/use-toast";
 import CharacterBuddy from "@/components/ui/character-buddy";
 import { fireCustomShapesConfetti } from "@/lib/confetti";
 import { NeumorphicCard } from "@/components/ui/neumorphic-card";
-import { TopCenterWave } from "@/components/ui/top-center-wave";
 import { CoApplicantPromo } from "@/components/coapplicant-promo";
 import { getStagePrompt } from "@/lib/stage-prompts";
 import { speakWithEleven } from "@/services/tts/elevenlabs";
-import { ELEVEN_VOICE_ID, ELEVEN_MODEL_DEFAULT, USE_BROWSER_TTS } from "@/config/voice";
+import { ELEVEN_VOICE_ID, ELEVEN_MODEL_DEFAULT, USE_BROWSER_TTS, type ElevenModel } from "@/config/voice";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { startWebSpeechListening } from "@/services/stt/web-speech";
 
 interface Message {
@@ -38,6 +38,30 @@ export const VoiceAgentDashboard: React.FC = () => {
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [showCoApplicantPromo, setShowCoApplicantPromo] = React.useState(false);
   const sttStopRef = React.useRef<null | (() => void)>(null);
+  const [voices, setVoices] = React.useState<{ id: string; name: string }[]>([]);
+  const [selectedVoiceId, setSelectedVoiceId] = React.useState<string>(() =>
+    localStorage.getItem('voice_id') || ELEVEN_VOICE_ID
+  );
+  const [selectedModel, setSelectedModel] = React.useState<ElevenModel>(() =>
+    (localStorage.getItem('voice_model') as ElevenModel) || ELEVEN_MODEL_DEFAULT
+  );
+  const [hasUserInteracted, setHasUserInteracted] = React.useState(false);
+
+  // Load available voices from server
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch('/api/tts/voices');
+        if (!r.ok) return;
+        const data = await r.json();
+        const list = (data.voices || []).map((v: any) => ({ id: v.id, name: v.name }));
+        setVoices(list);
+      } catch {}
+    })();
+  }, []);
+
+  React.useEffect(() => { localStorage.setItem('voice_id', selectedVoiceId); }, [selectedVoiceId]);
+  React.useEffect(() => { localStorage.setItem('voice_model', selectedModel); }, [selectedModel]);
 
   // Simple Web Speech API speaker for agent text
   const speak = React.useCallback((text: string) => {
@@ -54,6 +78,7 @@ export const VoiceAgentDashboard: React.FC = () => {
   }, []);
 
   const handleToggleListening = () => {
+    setHasUserInteracted(true);
     if (isListening) {
       setIsListening(false);
       setPartialTranscript(undefined);
@@ -77,6 +102,7 @@ export const VoiceAgentDashboard: React.FC = () => {
   const handleToggleMute = () => setIsMuted(!isMuted);
 
   const handleSendMessage = (content: string) => {
+    setHasUserInteracted(true);
     const userMessage: Message = {
       id: Date.now().toString(),
       type: "user",
@@ -101,8 +127,10 @@ export const VoiceAgentDashboard: React.FC = () => {
       setIsSpeaking(true);
       if (USE_BROWSER_TTS) speak(agentText);
       try {
-        await speakWithEleven(agentText, { voiceId: ELEVEN_VOICE_ID, model: ELEVEN_MODEL_DEFAULT });
-      } catch {}
+        const res = await speakWithEleven(agentText, { voiceId: selectedVoiceId, model: selectedModel });
+      } catch (e: any) {
+        toast({ title: 'TTS failed', description: (e?.message || 'Unknown error') });
+      }
       setIsSpeaking(false);
       if (currentStage === 1) setCurrentStage(2);
     }, 800);
@@ -152,7 +180,13 @@ export const VoiceAgentDashboard: React.FC = () => {
       setTimeout(async () => {
         setMessages((prevMsgs) => [...prevMsgs, agentMessage]);
         setIsSpeaking(true);
-        try { await speakWithEleven(agentMessage.content, { voiceId: ELEVEN_VOICE_ID, model: ELEVEN_MODEL_DEFAULT }); } catch {}
+        try {
+          if (hasUserInteracted) {
+            await speakWithEleven(agentMessage.content, { voiceId: selectedVoiceId, model: selectedModel });
+          }
+        } catch (e: any) {
+          toast({ title: 'TTS failed', description: (e?.message || 'Unknown error') });
+        }
         setIsSpeaking(false);
       }, 350);
     }
@@ -209,10 +243,6 @@ export const VoiceAgentDashboard: React.FC = () => {
             </svg>
             <p className="text-sm text-muted-foreground">Powered by Maya AI</p>
           </div>
-          {/* Top-center SVG banner */}
-          <div className="flex-1 flex justify-center">
-            <TopCenterWave className="w-[109px] h-[35px]" />
-          </div>
           <div className="flex space-x-2 items-center">
             <Button variant="secondary" size="sm"><HelpCircle size={16} className="mr-1" />Help</Button>
             <Button variant="secondary" size="sm"><Settings size={16} className="mr-1" />Settings</Button>
@@ -252,6 +282,38 @@ export const VoiceAgentDashboard: React.FC = () => {
               </div>
             </NeumorphicCard>
             <ProgressTracker currentStage={currentStage} />
+            {/* Voice Settings */}
+            <NeumorphicCard className="space-y-3" hover>
+              <h3 className="text-base font-semibold">Voice Settings</h3>
+              <div className="space-y-2">
+                <div>
+                  <div className="text-xs mb-1 text-muted-foreground">Voice</div>
+                  <Select value={selectedVoiceId} onValueChange={setSelectedVoiceId}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select voice" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(voices.length ? voices : [{id: ELEVEN_VOICE_ID, name: 'Laila (default)'}]).map(v => (
+                        <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <div className="text-xs mb-1 text-muted-foreground">Model</div>
+                  <Select value={selectedModel} onValueChange={(v) => setSelectedModel(v as ElevenModel)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="eleven_turbo_v2">eleven_turbo_v2 (default)</SelectItem>
+                      <SelectItem value="eleven_v3">eleven_v3</SelectItem>
+                      <SelectItem value="eleven_ttv_v3">eleven_ttv_v3</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </NeumorphicCard>
           </div>
 
           {/* Right Content - Stacked Avatar and Conversation (wider) */}
