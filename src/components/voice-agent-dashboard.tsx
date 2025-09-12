@@ -13,7 +13,7 @@ import { NeumorphicCard } from "@/components/ui/neumorphic-card";
 import { CoApplicantPromo } from "@/components/coapplicant-promo";
 import { getStagePrompt } from "@/lib/stage-prompts";
 import { speakWithEleven } from "@/services/tts/elevenlabs";
-import { ELEVEN_VOICE_ID, ELEVEN_MODEL_DEFAULT, USE_BROWSER_TTS, type ElevenModel } from "@/config/voice";
+import { ELEVEN_VOICE_ID, ELEVEN_MODEL_DEFAULT, USE_BROWSER_TTS } from "@/config/voice";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { startWebSpeechListening } from "@/services/stt/web-speech";
 
@@ -42,8 +42,8 @@ export const VoiceAgentDashboard: React.FC = () => {
   const [selectedVoiceId, setSelectedVoiceId] = React.useState<string>(() =>
     localStorage.getItem('voice_id') || ELEVEN_VOICE_ID
   );
-  const [selectedModel, setSelectedModel] = React.useState<ElevenModel>(() =>
-    (localStorage.getItem('voice_model') as ElevenModel) || ELEVEN_MODEL_DEFAULT
+  const [selectedModel, setSelectedModel] = React.useState<'eleven_turbo_v2' | 'eleven_v3' | 'eleven_ttv_v3'>(() =>
+    ((localStorage.getItem('voice_model') as string) || ELEVEN_MODEL_DEFAULT) as 'eleven_turbo_v2' | 'eleven_v3' | 'eleven_ttv_v3'
   );
   const [hasUserInteracted, setHasUserInteracted] = React.useState(false);
 
@@ -307,7 +307,7 @@ export const VoiceAgentDashboard: React.FC = () => {
                 </div>
                 <div>
                   <div className="text-xs mb-1 text-muted-foreground">Model</div>
-                  <Select value={selectedModel} onValueChange={(v) => setSelectedModel(v as ElevenModel)}>
+                  <Select value={selectedModel} onValueChange={(v) => setSelectedModel(v as 'eleven_turbo_v2' | 'eleven_v3' | 'eleven_ttv_v3')}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select model" />
                     </SelectTrigger>

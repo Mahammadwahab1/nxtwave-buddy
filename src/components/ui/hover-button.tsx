@@ -92,11 +92,9 @@ const HoverButton = React.forwardRef<HTMLButtonElement, HoverButtonProps>(
         style={{
           // default gradient colors for the interactive circles
           // consumers can override via inline style if needed
-          // @ts-expect-error CSS custom props
           "--circle-start": "var(--tw-gradient-from, #a0d9f8)",
-          // @ts-expect-error CSS custom props
           "--circle-end": "var(--tw-gradient-to, #3a5bbf)",
-        }}
+        } as React.CSSProperties}
       >
         {circles.map(({ id, x, y, color, fadeState }) => (
           <div

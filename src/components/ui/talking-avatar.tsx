@@ -81,11 +81,11 @@ export const TalkingAvatar: React.FC<TalkingAvatarProps> = ({
 
   const breathe = {
     scale: [1, 1.02, 1],
-    transition: { duration: 3, ease: "easeInOut", repeat: Infinity },
+    transition: { duration: 3, repeat: Infinity },
   };
 
   const bounce = isSpeaking
-    ? { y: [0, -2, 0], transition: { duration: 0.6, ease: "easeInOut", repeat: Infinity } }
+    ? { y: [0, -2, 0], transition: { duration: 0.6, repeat: Infinity } }
     : {};
 
   return (
