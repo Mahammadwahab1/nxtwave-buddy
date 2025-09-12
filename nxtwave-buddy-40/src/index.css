@@ -1,0 +1,165 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* NxtWave Voice Agent Design System - Neumorphic & Trust-focused */
+
+@layer base {
+  :root {
+    /* Primary Brand Colors */
+    --primary: 240 100% 67%;
+    --primary-foreground: 0 0% 100%;
+    --primary-soft: 240 100% 97%;
+    
+    /* Trust & Professional Colors */
+    --trust-blue: 217 91% 60%;
+    --trust-purple: 262 83% 58%;
+    --success-green: 142 76% 36%;
+    --warning-amber: 38 92% 50%;
+    
+    /* Neumorphic Background System */
+    --background: 240 20% 98%;
+    --surface: 240 25% 96%;
+    --surface-elevated: 240 30% 99%;
+    --foreground: 240 10% 15%;
+    
+    /* Semantic Colors */
+    --card: 240 30% 99%;
+    --card-foreground: 240 10% 15%;
+    --popover: 240 30% 99%;
+    --popover-foreground: 240 10% 15%;
+    --secondary: 240 20% 92%;
+    --secondary-foreground: 240 10% 15%;
+    --muted: 240 15% 88%;
+    --muted-foreground: 240 5% 45%;
+    --accent: 240 100% 97%;
+    --accent-foreground: 240 100% 67%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 15% 88%;
+    --input: 240 30% 99%;
+    --ring: 240 100% 67%;
+    
+    /* Neumorphic Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(240 100% 67%), hsl(262 83% 58%));
+    --gradient-surface: linear-gradient(145deg, hsl(240 30% 99%), hsl(240 25% 96%));
+    --gradient-trust: linear-gradient(135deg, hsl(217 91% 60%), hsl(142 76% 36%));
+    
+    /* Neumorphic Shadows */
+    --shadow-neumorphic: 8px 8px 16px hsl(240 20% 90%), -8px -8px 16px hsl(240 30% 100%);
+    --shadow-neumorphic-inset: inset 4px 4px 8px hsl(240 20% 90%), inset -4px -4px 8px hsl(240 30% 100%);
+    --shadow-float: 0 20px 40px hsl(240 20% 90% / 0.4);
+    --shadow-glow: 0 0 30px hsl(240 100% 67% / 0.3);
+    
+    /* Typography */
+    --font-heading: 'Inter', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    
+    --radius: 1rem;
+  }
+
+  .dark {
+    --background: 240 10% 8%;
+    --surface: 240 10% 12%;
+    --surface-elevated: 240 10% 16%;
+    --foreground: 240 20% 95%;
+    --card: 240 10% 12%;
+    --card-foreground: 240 20% 95%;
+    --popover: 240 10% 12%;
+    --popover-foreground: 240 20% 95%;
+    --secondary: 240 10% 16%;
+    --secondary-foreground: 240 20% 95%;
+    --muted: 240 10% 20%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 240 10% 16%;
+    --accent-foreground: 240 100% 67%;
+    --border: 240 10% 20%;
+    --input: 240 10% 16%;
+    --ring: 240 100% 67%;
+    
+    --shadow-neumorphic: 8px 8px 16px hsl(240 10% 4%), -8px -8px 16px hsl(240 10% 16%);
+    --shadow-neumorphic-inset: inset 4px 4px 8px hsl(240 10% 4%), inset -4px -4px 8px hsl(240 10% 16%);
+    --shadow-float: 0 20px 40px hsl(240 10% 4% / 0.6);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+@layer components {
+  .neumorphic {
+    background: hsl(var(--surface));
+    box-shadow: var(--shadow-neumorphic);
+    transition: var(--transition-smooth);
+  }
+  
+  .neumorphic-inset {
+    background: hsl(var(--surface));
+    box-shadow: var(--shadow-neumorphic-inset);
+  }
+  
+  .neumorphic-float {
+    background: hsl(var(--surface-elevated));
+    box-shadow: var(--shadow-float);
+  }
+  
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .gradient-surface {
+    background: var(--gradient-surface);
+  }
+  
+  .gradient-trust {
+    background: var(--gradient-trust);
+  }
+  
+  .glow-primary {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .animate-pulse-soft {
+    animation: pulse-soft 2s ease-in-out infinite;
+  }
+}
+
+@layer utilities {
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+  
+  .transition-bounce {
+    transition: var(--transition-bounce);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
