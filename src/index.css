@@ -152,6 +152,20 @@
   .transition-bounce {
     transition: var(--transition-bounce);
   }
+  
+  /* Simple line-clamp utilities without plugin */
+  .clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }
 
 @keyframes float {
@@ -162,4 +176,118 @@
 @keyframes pulse-soft {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.8; }
+}
+
+/* AI Loader animations */
+@keyframes loaderCircle {
+  0% {
+    transform: rotate(90deg);
+    box-shadow:
+      0 6px 12px 0 #38bdf8 inset,
+      0 12px 18px 0 #005dff inset,
+      0 36px 36px 0 #1e40af inset,
+      0 0 3px 1.2px rgb(56 189 248 / 0.3),
+      0 0 6px 1.8px rgb(0 93 255 / 0.2);
+  }
+  50% {
+    transform: rotate(270deg);
+    box-shadow:
+      0 6px 12px 0 #60a5fa inset,
+      0 12px 6px 0 #0284c7 inset,
+      0 24px 36px 0 #005dff inset,
+      0 0 3px 1.2px rgb(56 189 248 / 0.3),
+      0 0 6px 1.8px rgb(0 93 255 / 0.2);
+  }
+  100% {
+    transform: rotate(450deg);
+    box-shadow:
+      0 6px 12px 0 #4dc8fd inset,
+      0 12px 18px 0 #005dff inset,
+      0 36px 36px 0 #1e40af inset,
+      0 0 3px 1.2px rgb(56 189 248 / 0.3),
+      0 0 6px 1.8px rgb(0 93 255 / 0.2);
+  }
+}
+
+@keyframes loaderLetter {
+  0%, 100% {
+    opacity: 0.4;
+    transform: translateY(0);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  40% {
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+}
+
+.animate-loaderCircle { animation: loaderCircle 5s linear infinite; }
+.animate-loaderLetter { animation: loaderLetter 3s infinite; }
+
+/* Voice avatar helpers */
+@keyframes ring-pulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  70% { transform: scale(1.15); opacity: 0.18; }
+  100% { transform: scale(1); opacity: 0.6; }
+}
+
+@keyframes mouth-talk {
+  0% { transform: translateX(-50%) scaleY(0.6) scaleX(1); }
+  50% { transform: translateX(-50%) scaleY(1.5) scaleX(1.15); }
+  100% { transform: translateX(-50%) scaleY(0.6) scaleX(1); }
+}
+
+.animate-ring-pulse {
+  animation: ring-pulse 1.4s ease-in-out infinite;
+}
+
+.animate-mouth-talk {
+  animation: mouth-talk 0.18s ease-in-out infinite;
+}
+
+/* Cloud avatar helpers */
+@keyframes cloud-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  96%, 97% { transform: scaleY(0.15); }
+}
+
+.animate-cloud-blink {
+  animation: cloud-blink 4s ease-in-out infinite;
+}
+
+/* Buddy styles */
+.buddy-container { position: relative; width: 120px; height: 120px; }
+.buddy-bubble { position:absolute; left: 110px; bottom: 50px; background: hsl(var(--popover)); color: hsl(var(--popover-foreground)); border: 1px solid hsl(var(--border)); padding: 8px 10px; border-radius: 10px; box-shadow: 0 6px 18px hsl(240 5% 10% / 0.15); animation: fade-in 200ms ease-out; }
+.buddy-bubble::after { content: ""; position: absolute; left: -6px; bottom: 8px; width: 8px; height: 8px; background: inherit; border-left: 1px solid hsl(var(--border)); border-bottom: 1px solid hsl(var(--border)); transform: rotate(45deg); }
+
+@keyframes fade-in { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: translateY(0);} }
+
+.buddy-arm-left { transition: transform .25s ease; }
+.buddy-arm-right { transition: transform .25s ease; }
+.buddy-container:hover .buddy-arm-left { transform: rotate(-18deg) translateY(-2px); }
+.buddy-container:hover .buddy-arm-right { transform: rotate(18deg) translateY(-2px); }
+
+.buddy-speak .buddy-smile { stroke: #ef4444; animation: mouth-talk 0.18s ease-in-out infinite; }
+.buddy-listen .buddy-arm-left,.buddy-listen .buddy-arm-right { animation: ring-pulse 1.2s ease-in-out infinite; }
+.buddy-celebrate .buddy-arm-left { transform: rotate(-45deg) translateY(-6px); }
+.buddy-celebrate .buddy-arm-right { transform: rotate(45deg) translateY(-6px); }
+
+/* Micro celebration confetti animation */
+@keyframes confetti-burst {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--x, 0px), -70px) rotate(460deg);
+    opacity: 0;
+  }
+}
+
+.confetti-piece {
+  border-radius: 2px;
+  animation: confetti-burst 900ms ease-out forwards;
 }
