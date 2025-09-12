@@ -12,6 +12,9 @@ import { fireCustomShapesConfetti } from "@/lib/confetti";
 import { NeumorphicCard } from "@/components/ui/neumorphic-card";
 import { TopCenterWave } from "@/components/ui/top-center-wave";
 import { CoApplicantPromo } from "@/components/coapplicant-promo";
+import { getStagePrompt } from "@/lib/stage-prompts";
+import { speakWithEleven } from "@/services/tts/elevenlabs";
+import { startWebSpeechListening } from "@/services/stt/web-speech";
 
 interface Message {
   id: string;
@@ -33,17 +36,27 @@ export const VoiceAgentDashboard: React.FC = () => {
   const [partialTranscript, setPartialTranscript] = React.useState<string | undefined>(undefined);
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [showCoApplicantPromo, setShowCoApplicantPromo] = React.useState(false);
+  const sttStopRef = React.useRef<null | (() => void)>(null);
 
   const handleToggleListening = () => {
-    setIsListening(!isListening);
-    if (!isListening) {
-      setPartialTranscript("");
-      setTimeout(() => {
+    if (isListening) {
+      setIsListening(false);
+      setPartialTranscript(undefined);
+      if (sttStopRef.current) sttStopRef.current();
+      return;
+    }
+    // Start Web Speech API (replaceable with cloud STT later)
+    setIsListening(true);
+    setPartialTranscript("");
+    const ctrl = startWebSpeechListening({
+      onPartial: (t) => setPartialTranscript(t),
+      onFinal: (t) => {
         setIsListening(false);
         setPartialTranscript(undefined);
-        handleSendMessage("Hi Maya, I'm interested in the Full Stack Development course");
-      }, 3000);
-    }
+        if (t) handleSendMessage(t);
+      },
+    });
+    sttStopRef.current = ctrl.stop;
   };
 
   const handleToggleMute = () => setIsMuted(!isMuted);
@@ -58,23 +71,25 @@ export const VoiceAgentDashboard: React.FC = () => {
     setMessages((prev) => [...prev, userMessage]);
     setIsProcessing(true);
 
-    // Simulate agent response
-    setTimeout(() => {
-      setIsSpeaking(true);
+    // Simulated agent response (replace with Gemini/OpenAI). TTS via ElevenLabs.
+    setTimeout(async () => {
+      const agentText =
+        "Thanks! I can help with program details, fees, and co‑applicant steps. What would you like to know next?";
       const agentMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: "agent",
-        content:
-          "Great to meet you! Full Stack Development is an excellent choice. Before we proceed with the enrollment details, let me explain our comprehensive course structure and the amazing career opportunities it offers. This will help you make an informed decision about your investment in your future.",
+        content: agentText,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, agentMessage]);
       setIsProcessing(false);
-      setTimeout(() => {
-        setIsSpeaking(false);
-        if (currentStage === 1) setCurrentStage(2);
-      }, 3000);
-    }, 2000);
+      setIsSpeaking(true);
+      try {
+        await speakWithEleven(agentText);
+      } catch {}
+      setIsSpeaking(false);
+      if (currentStage === 1) setCurrentStage(2);
+    }, 800);
   };
 
   const handleUploadDocument = () => {
@@ -110,6 +125,19 @@ export const VoiceAgentDashboard: React.FC = () => {
       try {
         void fireCustomShapesConfetti();
       } catch {}
+      // Speak a short stage-specific intro and add it to messages
+      const { intro } = getStagePrompt(currentStage);
+      const agentMessage: Message = {
+        id: (Date.now() + Math.random()).toString(),
+        type: "agent",
+        content: intro,
+        timestamp: new Date(),
+      };
+      setTimeout(() => {
+        setMessages((prevMsgs) => [...prevMsgs, agentMessage]);
+        setIsSpeaking(true);
+        setTimeout(() => setIsSpeaking(false), 2500);
+      }, 350);
     }
     prevStageRef.current = currentStage;
     return () => { if (t) clearTimeout(t); };
