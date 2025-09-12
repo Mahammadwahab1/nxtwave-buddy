@@ -112,7 +112,7 @@ export const VoiceAgentDashboard: React.FC = () => {
     setMessages((prev) => [...prev, userMessage]);
     setIsProcessing(true);
 
-    // Simulated agent response (replace with Gemini/OpenAI). TTS via ElevenLabs.
+    // Simulated agent response (replace with Gemini/OpenAI). TTS via ElevenLabs with browser fallback.
     setTimeout(async () => {
       const agentText =
         "Thanks! I can help with program details, fees, and co‑applicant steps. What would you like to know next?";
@@ -125,10 +125,15 @@ export const VoiceAgentDashboard: React.FC = () => {
       setMessages((prev) => [...prev, agentMessage]);
       setIsProcessing(false);
       setIsSpeaking(true);
-      if (USE_BROWSER_TTS) speak(agentText);
       try {
-        const res = await speakWithEleven(agentText, { voiceId: selectedVoiceId, model: selectedModel });
+        if (!isMuted) {
+          await speakWithEleven(agentText, { voiceId: selectedVoiceId, model: selectedModel });
+        }
       } catch (e: any) {
+        // Fall back to Web Speech API if available
+        if (!isMuted) {
+          speak(agentText);
+        }
         toast({ title: 'TTS failed', description: (e?.message || 'Unknown error') });
       }
       setIsSpeaking(false);
@@ -181,10 +186,11 @@ export const VoiceAgentDashboard: React.FC = () => {
         setMessages((prevMsgs) => [...prevMsgs, agentMessage]);
         setIsSpeaking(true);
         try {
-          if (hasUserInteracted) {
+          if (hasUserInteracted && !isMuted) {
             await speakWithEleven(agentMessage.content, { voiceId: selectedVoiceId, model: selectedModel });
           }
         } catch (e: any) {
+          if (!isMuted && hasUserInteracted) speak(agentMessage.content);
           toast({ title: 'TTS failed', description: (e?.message || 'Unknown error') });
         }
         setIsSpeaking(false);
